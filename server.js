@@ -1,122 +1,169 @@
 const express = require('express');
-const { MongoClient } = require('mongodb');
-const morgan = require('morgan');
-
+const cors = require('cors');
+const { Pool } = require('pg');
+const path = require('path');
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
-app.use(morgan('dev')); // Logs requests for debugging
 
-const port = 3001;
-const atlasConnectionUri = 'your_mongodb_connection_string'; // Replace with your MongoDB URI
-const dbName = 'Emergency_waitlist';
+const port = 3000;
 
-async function main() {
-    const client = new MongoClient(atlasConnectionUri, { useNewUrlParser: true, useUnifiedTopology: true });
+const pool = new Pool({
+    host: "127.0.0.1",
+    port: "5432",
+    user: "postgres",
+    password: "Noblesse",
+    database: "emergency_waitlist"
+});
+
+// Test the connection
+pool.connect()
+    .then(() => console.log('Connected to the database'))
+    .catch(err => console.error('Connection error', err.stack));
+
+
+// GET /getAllPatients - Fetch all patients (for admin access)
+app.get('/getAllPatients', async (req, res) => {
     try {
-        await client.connect();
-        console.log('Successfully connected to MongoDB.');
-
-        const db = client.db(dbName);
-        const triageCollection = db.collection('Patients');
-
-        // Add a new patient
-        app.post('/addPatient', async (req, res) => {
-            try {
-                const { name, code, severity, waitTime } = req.body;
-
-                // Validate input
-                if (!name || !code || severity === undefined || waitTime === undefined) {
-                    console.error('Validation failed: Missing required fields');
-                    return res.status(400).json({ error: 'Missing required fields: name, code, severity, waitTime' });
-                }
-
-                if (typeof severity !== 'number' || typeof waitTime !== 'number') {
-                    console.error('Validation failed: Incorrect field types');
-                    return res.status(400).json({ error: 'Severity and waitTime must be numbers' });
-                }
-
-                const newPatient = { name, code, severity, waitTime };
-                console.log('Adding new patient:', newPatient);
-
-                const result = await triageCollection.insertOne(newPatient);
-
-                if (result.acknowledged) {
-                    console.log('Patient added successfully:', result.insertedId);
-                    res.status(201).json({ success: true, patientId: result.insertedId });
-                } else {
-                    console.error('Failed to add patient');
-                    res.status(500).json({ error: 'Failed to add patient to the triage list' });
-                }
-            } catch (error) {
-                console.error('Error in /addPatient:', error.message);
-                res.status(500).json({ error: 'Internal Server Error' });
-            }
-        });
-
-        // Get the list of all patients
-        app.get('/getTriageList', async (req, res) => {
-            try {
-                const triageList = await triageCollection.find().toArray();
-
-                if (triageList.length === 0) {
-                    console.warn('No patients found in the triage list');
-                    return res.status(404).json({ message: 'No patients found' });
-                }
-
-                console.log('Retrieved triage list with', triageList.length, 'patients');
-                res.status(200).json(triageList);
-            } catch (error) {
-                console.error('Error in /getTriageList:', error.message);
-                res.status(500).json({ error: 'Unable to retrieve triage list due to server error' });
-            }
-        });
-
-        // Get wait time for a specific patient
-        app.get('/getPatientWaitTime', async (req, res) => {
-            try {
-                const { name } = req.query;
-
-                if (!name || name.trim() === '') {
-                    console.error('Validation failed: Patient name is missing');
-                    return res.status(400).json({ error: 'Patient name is required' });
-                }
-
-                const patient = await triageCollection.findOne({ name });
-
-                if (!patient) {
-                    console.warn(`Patient '${name}' not found`);
-                    return res.status(404).json({ error: 'Patient not found' });
-                }
-
-                console.log(`Retrieved wait time for '${name}'`);
-                res.status(200).json({ waitTime: patient.waitTime });
-            } catch (error) {
-                console.error('Error in /getPatientWaitTime:', error.message);
-                res.status(500).json({ error: 'Internal Server Error' });
-            }
-        });
-
-        // Home route
-        app.get('/', (req, res) => {
-            res.send('Welcome to the Emergency Room Triage System!');
-        });
-
-        // Start the server
-        app.listen(port, () => {
-            console.log(`Server is running on http://localhost:${port}`);
-        });
-
-        // Gracefully close the database connection on exit
-        process.on('SIGINT', async () => {
-            console.log('Closing database connection...');
-            await client.close();
-            process.exit();
-        });
-    } catch (error) {
-        console.error('Failed to connect to MongoDB:', error.message);
-        process.exit(1); // Exit with failure code
+        const client = await pool.connect();
+        const result = await client.query(`
+            SELECT * 
+            FROM PATIENTS p
+            JOIN PRIORITIES pr ON p.priority_id = pr.priority_id
+            JOIN ROOMS r ON p.room_id = r.room_id
+            ORDER BY p.priority_id ASC, p.arrival_time ASC
+        `);
+        res.json(result.rows);  // Return all patients data
+        client.release();
+    } catch (err) {
+        console.error('Error fetching all patients:', err.stack);
+        res.status(500).send('Server error');
     }
-}
+});
 
-main().catch(console.error);
+// POST endpoint to update priority
+app.post('/updatePriority', async (req, res) => {
+    const { card_number, increase } = req.body;
+    if (!card_number) {
+        return res.status(400).send('Card number is required');
+    }
+
+    try {
+        const client = await pool.connect();
+        // First, fetch the current priority
+        const current = await client.query('SELECT priority_id FROM PATIENTS WHERE card_number = $1', [card_number]);
+        if (current.rows.length === 0) {
+            client.release();
+            return res.status(404).send('Patient not found');
+        }
+        
+        const newPriority = current.rows[0].priority_id + (increase ? 1 : -1);
+
+        // Update the priority
+        const result = await client.query(
+            'UPDATE PATIENTS SET priority_id = $1 WHERE card_number = $2 RETURNING *',
+            [newPriority, card_number]
+        );
+        client.release();
+
+        if (result.rows.length > 0) {
+            res.json(result.rows[0]);
+        } else {
+            res.status(404).send('Failed to update priority');
+        }
+    } catch (err) {
+        console.error('Error updating patient priority:', err.stack);
+        res.status(500).send('Server error');
+    }
+});
+
+
+// POST endpoint to remove a patient based on card number
+app.post('/removePatient', async (req, res) => {
+    const { card_number } = req.body;
+    if (!card_number) {
+        return res.status(400).json({ error: 'Card number is required' });
+    }
+
+    try {
+        const client = await pool.connect();
+        const result = await client.query('DELETE FROM PATIENTS WHERE card_number = $1 RETURNING *', [card_number]);
+        client.release();
+
+        if (result.rowCount > 0) {
+            res.json({ message: 'Patient removed successfully', data: result.rows[0] });
+        } else {
+            res.status(404).json({ error: 'Patient not found' });
+        }
+    } catch (err) {
+        console.error('Error removing patient:', err.stack);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// POST endpoint to check the waiting time
+app.post('/checkWaitTime', async (req, res) => {
+    const { card_number } = req.body;
+
+    if (!card_number) {
+        return res.status(400).json({ error: 'Card number is required' });
+    }
+
+    try {
+        const client = await pool.connect();
+
+        // Find the patient's priority and arrival time
+        const patientQuery = await client.query(`
+            SELECT p.priority_id, p.arrival_time, pr.approximate_time
+            FROM PATIENTS p
+            JOIN PRIORITIES pr ON p.priority_id = pr.priority_id
+            WHERE p.card_number = $1
+        `, [card_number]);
+
+        if (patientQuery.rows.length === 0) {
+            client.release();
+            return res.status(404).json({ error: 'Patient not found' });
+        }
+
+        const patient = patientQuery.rows[0];
+
+        // Calculate total waiting time for higher priority patients
+        const waitTimeQuery = await client.query(`
+            WITH OrderedQueue AS (
+                SELECT 
+                    p.card_number,
+                    p.priority_id,
+                    p.arrival_time,
+                    pr.approximate_time,
+                    ROW_NUMBER() OVER (ORDER BY p.priority_id ASC, p.arrival_time ASC) AS queue_position
+                FROM PATIENTS p
+                JOIN PRIORITIES pr ON p.priority_id = pr.priority_id
+            ),
+            CurrentPatient AS (
+                SELECT queue_position
+                FROM OrderedQueue
+                WHERE card_number = $1
+            )
+            SELECT COALESCE(SUM(oq.approximate_time), 0) AS total_wait_time
+            FROM OrderedQueue oq
+            JOIN CurrentPatient cp ON oq.queue_position < cp.queue_position;
+        `, [card_number]);
+
+        client.release();
+
+        const totalWaitTime = waitTimeQuery.rows[0].total_wait_time;
+
+        res.json({ wait_time: totalWaitTime });
+    } catch (err) {
+        console.error('Error calculating waiting time:', err.stack);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
