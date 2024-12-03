@@ -1,0 +1,122 @@
+/* General Styles */
+body, h1, h2, p, table, button {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    text-align: center;
+  }
+  
+  /* Header */
+  header {
+    background-color: #FFC107;
+    color: #fff;
+    padding: 20px 0;
+  }
+
+    /* Footer styles */
+    footer {
+      background-color: #FFC107;
+      color: #fff;
+      padding: 20px 0;
+      text-align: center;
+    }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  /* Admin Container */
+  .admin-container {
+    background: #fff;
+    width: 90%;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  h2 {
+    margin-bottom: 10px;
+  }
+  
+  p {
+    margin-bottom: 20px;
+  }
+  
+  /* Table Styles */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  thead {
+    background-color: #007BFF;
+    color: white;
+  }
+  
+  thead th {
+    padding: 10px;
+    text-align: left;
+  }
+  
+  tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+  
+  tbody tr:nth-child(odd) {
+    background-color: #fff;
+  }
+  
+  td, th {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+  }
+  
+  /* Button Styles */
+  button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  button.remove {
+    background-color: #dc3545;
+  }
+  
+  button.remove:hover {
+    background-color: #c82333;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 700px) {
+    .admin-container {
+      width: 100%;
+    }
+  
+    table {
+      font-size: 0.9rem;
+    }
+  
+    button {
+      padding: 5px;
+      font-size: 0.8rem;
+    }
+  }
+  

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting Time</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <header>
+       <h1>Waiting Time</h1> 
+    </header>
+    <div class="login-container">
+        <h2>Check Your Estimated Waiting Time</h2> 
+        <form id="check-wait-time-form">
+            <label for="name">Name:</label>
+             <input type="text" id="name" required><br>
+            <label for="card_number">Card Number:</label>
+            <input type="text" id="card_number" required><br>
+            <button type="submit">Check Wait Time</button>
+        </form>
+        <div id="wait-time-display" class="result">
+            <!-- Estimated waiting time will be displayed here -->
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2024 Hospital Triage System. All rights reserved.</p>
+    </footer>
+    <script src="waiting_time.js"></script>
+</body>
+</html>
+

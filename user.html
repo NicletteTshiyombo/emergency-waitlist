@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Triage App - User</title>
+  <link rel="stylesheet" href="user.css">
+</head>
+<body>
+  <header>
+    <h1>Hospital Triage - User</h1>
+  </header>
+  <main>
+    <div class="form-container">
+      <h2>Please select your type of injury and pain level:</h2>
+
+      <!-- Injury Type -->
+      <section class="injury-section">
+        <h3>Type of Injury:</h3>
+        <form id="injury-form">
+          <div class="injury-options">
+            <label><input type="radio" name="injury" value="Head"> Head</label>
+            <label><input type="radio" name="injury" value="Heart"> Heart</label>
+            <label><input type="radio" name="injury" value="Lung"> Lung</label>
+            <label><input type="radio" name="injury" value="Neck"> Neck</label>
+            <label><input type="radio" name="injury" value="Stomach"> Stomach</label>
+            <label><input type="radio" name="injury" value="Bone or Muscle"> Bone or Muscle</label>
+            <label><input type="radio" name="injury" value="Burn or Cut"> Burn or Cut</label>
+          </div>
+        </form>
+      </section>
+
+      <!-- Pain Level -->
+      <section class="pain-section">
+        <h3>Level of Pain:</h3>
+        <form id="pain-form">
+          <div class="pain-options">
+            <label><input type="radio" name="pain" value="1"> 1</label>
+            <label><input type="radio" name="pain" value="2"> 2</label>
+            <label><input type="radio" name="pain" value="3"> 3</label>
+            <label><input type="radio" name="pain" value="4"> 4</label>
+            <label><input type="radio" name="pain" value="5"> 5</label>
+            <label><input type="radio" name="pain" value="6"> 6</label>
+            <label><input type="radio" name="pain" value="7"> 7</label>
+            <label><input type="radio" name="pain" value="8"> 8</label>
+            <label><input type="radio" name="pain" value="9"> 9</label>
+            <label><input type="radio" name="pain" value="10"> 10</label>
+          </div>
+        </form>
+      </section>
+
+      <!-- Submit Button -->
+      <button class="submit-button" type="button">Submit Entry</button>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2024 Hospital Triage System. All rights reserved.</p>
+  </footer>
+</body>
+</html>

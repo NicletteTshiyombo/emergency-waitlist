@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Triage App - Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <header>
+    <h1>Hospital Triage - Admin</h1>
+  </header>
+  <main>
+    <div class="admin-container">
+      <h2>Welcome to the Admin Panel</h2>
+      <p>Manage patient entries below:</p>
+      
+      <!-- Table for displaying patient data -->
+      <table>
+        <thead>
+          <tr>
+            <th>Card Number</th>
+            <th>Name</th>
+            <th>Injury Type</th>
+            <th>Pain Level</th>
+            <th>Priority level</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+         
+        </tbody>
+      </table>
+      <button id="loadData" class="button">Load Data</button>
+      <p>Selection actions:</p>
+      <p id="selectedEntryDisplay">Selected Entry:</p>
+      <button id="removeData" class="button">Remove From Triage</button>
+      <button id="increaseLevel" class="button">Increase Priority Level </button>
+      <button id="decreaseLevel" class="button">Decrease Priority Level</button>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2024 Hospital Triage System. All rights reserved.</p>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
